@@ -387,16 +387,7 @@ class DashboardController : BaseController(), NavigationAware {
 }</code></pre>
 				</section>
 
-				<section>
-					<h2>
-						Member functions
-					</h2>
-					<pre><code class="hljs" data-trim contenteditable>
-open class Foo {
-    open fun foo(i: Int = 10) { ... }
-}
-					</code></pre>
-				</section>
+				<!-- removed sections that were not used during the hackathon -->
 
 				<section>
 					<h2>
@@ -452,163 +443,9 @@ data class User(val name: String, val age: Int)
 						Advanced features
 					</h2>
 				</section>
-				<section>
-					<h2>
-						Extension Properties
-					</h2>
-					<pre><code class="hljs" data-trim contenteditable>// extension everything c# 8
-val Person.fullName: String
-	get() = "$firstName $lastName"
 
+				<!-- removed sections that were not used during the hackathon -->
 
-val person = Person("John", "Smith")
-print(person.fullName)
-							</code></pre>
-				</section>
-				<section>
-					<h2>
-						Extensions methods
-					</h2>
-					<pre><code class="hljs" data-trim contenteditable>
-// c# 3.5
-fun Number.percentOf(number: Number): Number{
-	if (number == 0){
-		return 0
-	}
-
-	return this.toDouble() / number.toDouble() * 100
-}
-
-val percents = 10.percentOf(100)
-						</code></pre>
-				</section>
-
-				<section>
-					<h2>
-						Infix methods
-					</h2>
-					<pre><code class="hljs" data-trim contenteditable>
-infix fun Number.percentOf(number: Number): Number{
-	if (number == 0){
-		return 0
-	}
-
-	return this.toDouble() / number.toDouble() * 100
-}
-
-val percents = 10 percentOf 100
-							</code></pre>
-				</section>
-
-				<section>
-					<h2>
-						Delegated properties: Lazy
-					</h2>
-					<pre><code class="hljs" data-trim contenteditable>
-class HeavyObject
-class HeavyObjectProvider{
-	val instance: HeavyObject by lazy {
-		HeavyObject()
-	}
-}
-								</code></pre>
-				</section>
-
-				<section>
-					<h2>
-						Delegated properties: map
-					</h2>
-					<pre><code class="hljs" data-trim contenteditable>// c# 8
-interface Field { 
-	fun validate(): String 
-}
-class EmailField: Field{ 
-	override fun validate(): String = "" 
-}
-
-abstract class Form {
-	protected val properties: MutableMap<String, Field> = mutableMapOf()
-
-	fun validate(): Collection<String> {
-		val errors = arrayListOf<String>()
-		for (field in properties) {
-			errors.add(field.value.validate())
-		}
-		return errors
-	}
-}
-
-class OrderForm: Form() {
-	var email: EmailField by properties
-	init {
-		email = EmailField()
-	}
-}</code></pre>
-				</section>
-
-				<section>
-					<h2>
-						Class Delegation
-					</h2>
-					<pre><code class="hljs" data-trim contenteditable>interface View { }
-interface ThirdPartyView { }
-
-class ViewDecorator (view: View): View by view, ThirdPartyView { }
-class OrderView: View{ }
-
-val orderView = OrderView()
-val decorator = ViewDecorator(orderView)</code></pre>
-				</section>
-
-				<section>
-					<h2>
-						Object
-					</h2>
-					<pre><code class="hljs" data-trim contenteditable>
-abstract class Event
-object EventBus {
-    fun publish(event: Event){ }
-    fun subscribe(channel: String): Observable<Event> { /* ... */ }
-}
-
-EventBus.publish(TestEvent())
-
-</code></pre>
-				</section>
-
-				<section>
-					<h2>
-						Companion Object
-					</h2>
-					<pre><code class="hljs" data-trim contenteditable>
-class TestEvent : Event() {
-	companion object {
-		const val channel = "test"
-	}
-}
-val observable = EventBus.subscribe(TestEvent.channel)
-
-</code></pre>
-				</section>
-				<section>
-					<h2>
-						Generic types
-					</h2>
-					<pre><code class="hljs" data-trim contenteditable>
-abstract class Entity
-abstract class EntityQuery&lt;out TEntity&gt; where TEntity: Entity {
-	abstract fun execute(): Collection&lt;TEntity&gt;
-}
-abstract class EntityCommand&lt;in TEntity&gt; where TEntity: Entity {
-	abstract fun execute(entity: TEntity)
-}
-fun &lt;T&gt; emptyCollection(): Collection&lt;T&gt;{
-	return arrayListOf&lt;T&gt;()
-}
-inline fun &lt;reified T&gt; getTypeName(): String{
-	return T::class.java.simpleName
-}	</code></pre>
-				</section>
 				<section>
 					<h2>
 						Lambdas
@@ -661,126 +498,17 @@ val result = lock(lock, { sharedResource.operation() })</code></pre>
 				</section>
 
 
-				<section>
-					<h2>
-						Closures
-					</h2>
-					<pre><code class="hljs" data-trim contenteditable>
-var sum = 0
-ints.filter { it > 0 }.forEach {
-	sum += it
-}
-print(sum)
-						</code></pre>
-				</section>
-
-				<section>
-					<h2>
-						Inline
-					</h2>
-					<pre><code class="hljs" data-trim contenteditable>inline fun lock<T>(lock: Lock, body: () -> T): T {
-	// ...
-}</code></pre>
-					<pre><code class="hljs" data-trim contenteditable>lock(l) { foo() }</code></pre>
-					<pre><code class="hljs" data-trim contenteditable>l.lock()
-try {
-	foo()
-}
-finally {
-	l.unlock()
-}</code></pre>
-				</section>
-
-				<section>
-					<h2>
-						Lambda receivers
-					</h2>
-					<pre><code class="hljs" data-trim contenteditable>class ODataConfiguration{
-	var host = ""
-	var apiVersion = 0
-	var tenant = ""
-}
-class ODataConnection {
-    private val configuration = ODataConfiguration()
-    fun configure(initialize: ODataConfiguration.() -> Unit) { 
-		configuration.initialize() 
-    }
-}
-
-val odata = ODataConnection()
-
-odata.configure {
-	host = "api.contoso.com"
-	apiVersion = 3
-	tenant = "foo"
-}</code></pre>
-				</section>
-
-				<section>
-					<h2>
-						DSL
-					</h2>
-					<pre><code class="hljs" data-trim contenteditable>val q = ODataQuery(
-	top = 10,
-	skip = 1,
-	select = ODataSelect("Id","Description"),
-	expand = ODataExpand("Permission","Documents"),
-	filter = ODataFilter{
-		group { ("IsRepeating" isEqualTo true) and ("RepeatType" isGreaterThan 1) } and ("Notes" isNotEqualTo null)
-	}
-)
-
-val expectedEncoded = "%24select=Id%2CDescription&%24expand=Permission%2CDocuments&%24filter=(IsRepeating%20eq%20True%20and%20RepeatType%20gt%201)%20and%20Notes%20ne%20null&%24top=10&%24skip=1"</code></pre>
-				</section>
+				
+				<!-- removed sections that were not used during the hackathon -->
 
 
 			</section>
 
 			<!-- removed Android section -->
 
-			<section data-background-transition="fade" data-background="#E9DDFF">
-				<section data-background-transition="fade" data-background="#a693ed">
-					<h2>Problems</h2>
-				</section>
-				<section>
-					<h2>Code generating libraries</h2>
-					<ul>
-						<li>GreenDao is not working</li>
-						<li>Hard to debug generation errors</li>
-					</ul>
-				</section>
-				<section>
-					<h2>Leak canary</h2>
-					<p>
-						Currently not working with Gradle 3
-					</p>
-				</section>
-				<section>
-					<h2>Compilation time</h2>
-					<ul>
-						<li>Average build time 1.30 minutes</li>
-						<li>Inlining increase build time</li>
-					</ul>
-				</section>
-				<section>
-					<img src="images/kotlin.jpg" />
-				</section>
-			</section>
-			<section data-background-transition="fade" data-background="#FFF">
-				<section>
-					<h2>More info</h2>
-					<p>
-						<a href="https://kotlinlang.org">kotlinlang.org</a>
-					</p>
-				</section>
-				<section>
-					<h2>This presentation</h2>
-					<p>
-						<a href="https://github.com/raflop/kotlin-android-presentation">https://github.com/raflop/kotlin-android-presentation</a>
-					</p>
-					<img src="images/qr.png" />
-				</section>
-			</section>
+			<!-- removed section nammed problem --> 
+
+			<!-- removed section nammed More info -->
 
 		</div>
 	</div>
