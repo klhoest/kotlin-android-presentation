@@ -97,7 +97,142 @@
 				</section>
 				<section>
 					<h2>Les apports du Kotlin par rapport au Java</h2>
-					<table style="font-size: 25px;">
+					<table     interface Targeting {
+						val target: WorkablePlanet?
+						val requiredArmy: Int
+						var AIFleetOrders: ArrayList<FleetOrder>
+						var sentFleetNumber: Int
+						fun findTarget(): WorkablePlanet?
+						fun mobilise()
+						fun itsATrap() {
+							AIFleetOrders.clear()
+						}
+					}
+				
+					inner class InerTarget : Targeting {
+				
+						override val target: WorkablePlanet? = findTarget()
+						override val requiredArmy: Int
+							get() {
+								var extraCare = 0
+								if(target != null) {
+									if (target.colony.owner != WorkablePlanet.Guilde_du_Commerce) {
+										extraCare = 5 + target.colony.gr!! * 2
+									}
+									return extraCare + target.empireFleetIncoming + (target.enemyCivilainNearby - target.rebelCivilianNearby).toInt() - target.rebelionFleetIncoming - sentFleetNumber
+								} else {
+									return 0
+								}
+							}
+						override var AIFleetOrders = ArrayList<FleetOrder>();
+						override var sentFleetNumber: Int = 0
+							get() = AIFleetOrders.sumBy { inpectFleet -> inpectFleet.units }
+				
+						override fun findTarget(): WorkablePlanet? {
+							var inspectPlanet: WorkablePlanet
+							val it = solarSystemCell.iterator()
+							while (it.hasNext()) {
+								inspectPlanet = it.next()
+								if (!inspectPlanet.safe) {
+									System.out.println("innerTarget : " + inspectPlanet.colony.id + " , interest = " + inspectPlanet.interest)
+									return inspectPlanet
+								}
+							}
+							System.out.println("no innerTarget found. skip this turn");
+							return null
+						}
+				
+						override fun mobilise() {
+							if(target != null) {
+								println("on innerTarget: " + target.colony.id)
+								var mobiliseOverpopulation = false
+								for (inspectedPlanet in overPopulatedPlanetList) {
+									if (requiredArmy < 0)
+										return
+				
+									sentFleetNumber = inspectedPlanet.pourFrodon(target.colony.id, requiredArmy, AIFleetOrders)
+									mobiliseOverpopulation = true;
+								}
+								val it = sortRebelPlanets.iterator()
+								while (requiredArmy > 0 && it.hasNext()) {
+									sentFleetNumber += it.next().pourFrodon(target.colony.id, requiredArmy, AIFleetOrders)
+								}
+								if (requiredArmy > 15 && !mobiliseOverpopulation) {
+									itsATrap();
+								}
+								returnJSON.fleets.addAll(AIFleetOrders)
+							}
+						}
+					}
+				
+					inner class OuterTarget() : Targeting {
+						override val target: WorkablePlanet? = findTarget()
+						override val requiredArmy: Int
+							get() {
+								var extraCare = 0
+								if(target!= null) {
+									if (target.colony.owner != WorkablePlanet.Guilde_du_Commerce) {
+										extraCare = 30 + target.colony.gr!! * 3
+									}
+									return extraCare + target.empireFleetIncoming + (target.enemyCivilainNearby - target.rebelCivilianNearby).toInt() - target.rebelionFleetIncoming - sentFleetNumber + (distance/70).toInt()
+								} else {
+									return 0
+								}
+							}
+						override var AIFleetOrders = ArrayList<FleetOrder>();
+						override var sentFleetNumber: Int = 0
+							get() = AIFleetOrders.sumBy { inpectFleet -> inpectFleet.units }
+				
+						var distance:Double =99999.0
+							get() {
+								if(target!= null) {
+									return Math.hypot(localCluster.center.x - target.colony.x, localCluster.center.y - target.colony.y)
+								}
+								else {
+									return 99999.0
+								}
+							}
+				
+						override fun findTarget(): WorkablePlanet? {
+							val cellTargets = TreeMap<Double, WorkablePlanet>()
+							AIList.forEach { inspectAI ->
+								val targetCopy = inspectAI.inerTarget; //could not smart cast otherwise
+								if (targetCopy != null && targetCopy.target!= null) {
+									val potentialtarget = targetCopy.target
+									val key = (potentialtarget.interest - Math.hypot(localCluster.center.x - potentialtarget.colony.x, localCluster.center.y - potentialtarget.colony.y) / 40) * -1
+									cellTargets.put(key, potentialtarget)
+								}
+							}
+							if (cellTargets.isEmpty()) {
+								System.out.println("no outerTarget found. skip this turn");
+								return null
+							} else {
+								return cellTargets.firstEntry().value
+							}
+						}
+				
+						override fun mobilise() {
+							if(target!= null) {
+								println("on outerTarget: " + target.colony.id)
+								var mobiliseOverpopulation = false
+								for (inspectedPlanet in overPopulatedPlanetList) {
+									if (requiredArmy < 0)
+										return
+									sentFleetNumber = inspectedPlanet.pourFrodon(target.colony.id, requiredArmy, AIFleetOrders)
+									mobiliseOverpopulation = true;
+								}
+								val it = sortRebelPlanets.iterator()
+								while (requiredArmy > 0 && it.hasNext()) {
+									sentFleetNumber += it.next().pourFrodon(target.colony.id, requiredArmy, AIFleetOrders)
+								}
+								if (requiredArmy > 0 && !mobiliseOverpopulation) {
+									itsATrap();
+								}
+									returnJSON.fleets.addAll(AIFleetOrders)
+							}
+						}
+					}
+				}>
 						<tr>
 							<td>
 								<ul>
@@ -193,7 +328,7 @@ fun main(args : String) {
 
 				<section>
 					<h2>
-						Functions features
+						Functions : Default Arguments
 					</h2>
 					<pre><code class="hljs" data-trim contenteditable>
 fun configure(min: Int = 5, max: Int = 10) {
@@ -204,11 +339,6 @@ configure(max= 20)
 
 					</code></pre>
 
-					<pre><code class="hljs" data-trim contenteditable>
-fun concatStrings(vararg values: String): String {
-	/* values is collection of strings */
-}
-					</code></pre>
 				</section>
 				<section>
 					<h2>
@@ -229,7 +359,7 @@ x += 1
 
 				<section>
 					<h2>
-						Using string templates
+						String templates
 					</h2>
 					<pre><code class="hljs" data-trim contenteditable>
 // c# 6
@@ -238,48 +368,28 @@ val s1 = "a is $a"
 val s2 = "s1 length = ${s1.length}"
 					</code></pre>
 				</section>
-				<section>
-						<h2>
-							Using conditional expressions
-						</h2>
-						<pre><code class="hljs" data-trim contenteditable>
-	fun maxOf(a: Int, b: Int): Int {
-		if (a > b) {
-			return a
-		} else {
-			return b
-		}
-	}
-						</code></pre> if expression ( ? : ; in c# )
-						<pre><code class="hljs" data-trim contenteditable>
-	fun maxOf(a: Int, b: Int) = if (a > b) a else b
-						</code></pre>
-					</section>
-					
+
 				<!-- removed features that were too similar with java -->
 
 				<section>
 					<h2>
 						Ranges
 					</h2>
-					<pre><code class="hljs" data-trim contenteditable>// iterate through ranges
+					<pre><code class="hljs" data-trim contenteditable>
 for (x in 1..5) { print(x) }
 for (x in 1..10 step 2)  { print(x) }
 for (x in 9 downTo 0 step 3)  { print(x) }
 
-// Check if a number is in or out of range:
+// parcours tous les nombres de 1 à y+1
 if (x in 1..y+1) {
 	println("fits in range")
-}
-if (-1 !in 0..list.lastIndex) {
-	println("-1 is out of range")
 }</code></pre>
 				</section>
 				<section>
 					<h2>
-						When Expression
+						Expression When
 					</h2>
-					(Switch with pattern matching c# 7)
+					(Switch avec pattern matching c# 7)
 					<pre><code class="hljs" data-trim contenteditable>
 fun describe(obj: Any): String =
 when (obj) {
@@ -301,15 +411,15 @@ when (obj) {
 					</h2>
 					<pre><code class="hljs" data-trim contenteditable>// class with default consstructor
 class Human { }
-// class with primary constructor
+// classe avec constructeur primaire
 class Person(val firstName: String, var lastName: String) { } 
-// class with primary constructor
+// class avec constructeur secondaire
 class Customer(val login: String) {
     init { 
-	// initializer
+	// code
     }
     constructor(login: String, val email: String): this(login) {
-	//secondary constructor
+	//code
     }
 }</code></pre>
 					<pre><code class="hljs" data-trim contenteditable>val human = Human()
@@ -320,14 +430,20 @@ val customer2 = Customer("Smith89", "Joe")</code></pre>
 					<h2>
 						Interfaces
 					</h2>
-					<pre><code class="hljs" data-trim contenteditable>
-interface FooBarInterface {
-	fun bar()
+					<pre><code class="hljs" data-trim contenteditable>interface MyInterface {
+	val prop: Int // abstract
+
+	val propertyWithImplementation: String
+		get() = "foo"
+
 	fun foo() {
-		// Default Interface Implementations (c# 8)
+		print(prop)
 	}
 }
 
+class Child : MyInterface {
+	override val prop: Int = 29
+}
 </code></pre>
 				</section>
 
@@ -462,8 +578,26 @@ fruits
 val result = lock(lock, { sharedResource.operation() })</code></pre>
 				</section>
 
+				<section>
+						<h2>
+							Using conditional expressions
+						</h2>
+						<pre><code class="hljs" data-trim contenteditable>
+	fun maxOf(a: Int, b: Int): Int {
+		if (a > b) {
+			return a
+		} else {
+			return b
+		}
+	}
+						</code></pre> if expression ( ? : ; in c# )
+						<pre><code class="hljs" data-trim contenteditable>
+	fun maxOf(a: Int, b: Int) = if (a > b) a else b
+						</code></pre>
+					</section>
 
-	
+
+				
 				<!-- removed sections that were not used during the hackathon -->
 
 
@@ -515,7 +649,7 @@ val result = lock(lock, { sharedResource.operation() })</code></pre>
 						Distinction entre les types nullables et les types non-nullables
 					</h2>
 					<pre><code class="hljs" data-trim contenteditable>
-var a: Sting = "abc"
+var a: String = "abc"
 a = null // erreur de compilation ici
 var l = a.length
 
