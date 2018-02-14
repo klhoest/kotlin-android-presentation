@@ -97,142 +97,7 @@
 				</section>
 				<section>
 					<h2>Les apports du Kotlin par rapport au Java</h2>
-					<table     interface Targeting {
-						val target: WorkablePlanet?
-						val requiredArmy: Int
-						var AIFleetOrders: ArrayList<FleetOrder>
-						var sentFleetNumber: Int
-						fun findTarget(): WorkablePlanet?
-						fun mobilise()
-						fun itsATrap() {
-							AIFleetOrders.clear()
-						}
-					}
-				
-					inner class InerTarget : Targeting {
-				
-						override val target: WorkablePlanet? = findTarget()
-						override val requiredArmy: Int
-							get() {
-								var extraCare = 0
-								if(target != null) {
-									if (target.colony.owner != WorkablePlanet.Guilde_du_Commerce) {
-										extraCare = 5 + target.colony.gr!! * 2
-									}
-									return extraCare + target.empireFleetIncoming + (target.enemyCivilainNearby - target.rebelCivilianNearby).toInt() - target.rebelionFleetIncoming - sentFleetNumber
-								} else {
-									return 0
-								}
-							}
-						override var AIFleetOrders = ArrayList<FleetOrder>();
-						override var sentFleetNumber: Int = 0
-							get() = AIFleetOrders.sumBy { inpectFleet -> inpectFleet.units }
-				
-						override fun findTarget(): WorkablePlanet? {
-							var inspectPlanet: WorkablePlanet
-							val it = solarSystemCell.iterator()
-							while (it.hasNext()) {
-								inspectPlanet = it.next()
-								if (!inspectPlanet.safe) {
-									System.out.println("innerTarget : " + inspectPlanet.colony.id + " , interest = " + inspectPlanet.interest)
-									return inspectPlanet
-								}
-							}
-							System.out.println("no innerTarget found. skip this turn");
-							return null
-						}
-				
-						override fun mobilise() {
-							if(target != null) {
-								println("on innerTarget: " + target.colony.id)
-								var mobiliseOverpopulation = false
-								for (inspectedPlanet in overPopulatedPlanetList) {
-									if (requiredArmy < 0)
-										return
-				
-									sentFleetNumber = inspectedPlanet.pourFrodon(target.colony.id, requiredArmy, AIFleetOrders)
-									mobiliseOverpopulation = true;
-								}
-								val it = sortRebelPlanets.iterator()
-								while (requiredArmy > 0 && it.hasNext()) {
-									sentFleetNumber += it.next().pourFrodon(target.colony.id, requiredArmy, AIFleetOrders)
-								}
-								if (requiredArmy > 15 && !mobiliseOverpopulation) {
-									itsATrap();
-								}
-								returnJSON.fleets.addAll(AIFleetOrders)
-							}
-						}
-					}
-				
-					inner class OuterTarget() : Targeting {
-						override val target: WorkablePlanet? = findTarget()
-						override val requiredArmy: Int
-							get() {
-								var extraCare = 0
-								if(target!= null) {
-									if (target.colony.owner != WorkablePlanet.Guilde_du_Commerce) {
-										extraCare = 30 + target.colony.gr!! * 3
-									}
-									return extraCare + target.empireFleetIncoming + (target.enemyCivilainNearby - target.rebelCivilianNearby).toInt() - target.rebelionFleetIncoming - sentFleetNumber + (distance/70).toInt()
-								} else {
-									return 0
-								}
-							}
-						override var AIFleetOrders = ArrayList<FleetOrder>();
-						override var sentFleetNumber: Int = 0
-							get() = AIFleetOrders.sumBy { inpectFleet -> inpectFleet.units }
-				
-						var distance:Double =99999.0
-							get() {
-								if(target!= null) {
-									return Math.hypot(localCluster.center.x - target.colony.x, localCluster.center.y - target.colony.y)
-								}
-								else {
-									return 99999.0
-								}
-							}
-				
-						override fun findTarget(): WorkablePlanet? {
-							val cellTargets = TreeMap<Double, WorkablePlanet>()
-							AIList.forEach { inspectAI ->
-								val targetCopy = inspectAI.inerTarget; //could not smart cast otherwise
-								if (targetCopy != null && targetCopy.target!= null) {
-									val potentialtarget = targetCopy.target
-									val key = (potentialtarget.interest - Math.hypot(localCluster.center.x - potentialtarget.colony.x, localCluster.center.y - potentialtarget.colony.y) / 40) * -1
-									cellTargets.put(key, potentialtarget)
-								}
-							}
-							if (cellTargets.isEmpty()) {
-								System.out.println("no outerTarget found. skip this turn");
-								return null
-							} else {
-								return cellTargets.firstEntry().value
-							}
-						}
-				
-						override fun mobilise() {
-							if(target!= null) {
-								println("on outerTarget: " + target.colony.id)
-								var mobiliseOverpopulation = false
-								for (inspectedPlanet in overPopulatedPlanetList) {
-									if (requiredArmy < 0)
-										return
-									sentFleetNumber = inspectedPlanet.pourFrodon(target.colony.id, requiredArmy, AIFleetOrders)
-									mobiliseOverpopulation = true;
-								}
-								val it = sortRebelPlanets.iterator()
-								while (requiredArmy > 0 && it.hasNext()) {
-									sentFleetNumber += it.next().pourFrodon(target.colony.id, requiredArmy, AIFleetOrders)
-								}
-								if (requiredArmy > 0 && !mobiliseOverpopulation) {
-									itsATrap();
-								}
-									returnJSON.fleets.addAll(AIFleetOrders)
-							}
-						}
-					}
-				}>
+					<table style="font-size: 25px;">
 						<tr>
 							<td>
 								<ul>
@@ -305,8 +170,24 @@
 					<h2>Language syntax</h2>
 				</section>
 				<section>
+						<h2>
+							variables
+						</h2>
+						variable immutable:
+						<pre><code class="hljs" data-trim contenteditable>
+val a: Int = 1 
+val b = 2   // `Int` implicite
+val c: Int  // Typage necessaire
+c = 3
+					</code></pre> variable mutable:
+					<pre><code class="hljs" data-trim contenteditable>
+var x = 5
+x += 1
+						</code></pre>
+					</section>
+				<section>
 					<h2>
-						Functions
+						Fonctions
 					</h2>
 					<pre><code class="hljs" data-trim contenteditable>
 fun sum(a: Int, b: Int): Int {
@@ -328,7 +209,7 @@ fun main(args : String) {
 
 				<section>
 					<h2>
-						Functions : Default Arguments
+						Fonctions : arguments par defaut
 					</h2>
 					<pre><code class="hljs" data-trim contenteditable>
 fun configure(min: Int = 5, max: Int = 10) {
@@ -340,26 +221,10 @@ configure(max= 20)
 					</code></pre>
 
 				</section>
-				<section>
-					<h2>
-						Defining local variable
-					</h2>
-					Assign-once (read-only) local variable:
-					<pre><code class="hljs" data-trim contenteditable>
-val a: Int = 1  // immediate assignment
-val b = 2   // `Int` type is inferred
-val c: Int  // Type required when no initializer is provided
-c = 3       // deferred assignment
-					</code></pre> Mutable variable:
-					<pre><code class="hljs" data-trim contenteditable>
-var x = 5 // `Int` type is inferred
-x += 1
-					</code></pre>
-				</section>
 
 				<section>
 					<h2>
-						String templates
+						concaténation de Strings
 					</h2>
 					<pre><code class="hljs" data-trim contenteditable>
 // c# 6
@@ -409,8 +274,7 @@ when (obj) {
 					<h2>
 						Classes
 					</h2>
-					<pre><code class="hljs" data-trim contenteditable>// class with default consstructor
-class Human { }
+					<pre><code class="hljs" data-trim contenteditable>
 // classe avec constructeur primaire
 class Person(val firstName: String, var lastName: String) { } 
 // class avec constructeur secondaire
@@ -577,24 +441,6 @@ fruits
 					<pre><code class="hljs" data-trim contenteditable>fun toBeSynchronized() = sharedResource.operation()
 val result = lock(lock, { sharedResource.operation() })</code></pre>
 				</section>
-
-				<section>
-						<h2>
-							Using conditional expressions
-						</h2>
-						<pre><code class="hljs" data-trim contenteditable>
-	fun maxOf(a: Int, b: Int): Int {
-		if (a > b) {
-			return a
-		} else {
-			return b
-		}
-	}
-						</code></pre> if expression ( ? : ; in c# )
-						<pre><code class="hljs" data-trim contenteditable>
-	fun maxOf(a: Int, b: Int) = if (a > b) a else b
-						</code></pre>
-					</section>
 
 
 				
